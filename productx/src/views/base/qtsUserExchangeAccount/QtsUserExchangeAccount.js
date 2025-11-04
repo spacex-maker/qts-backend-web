@@ -122,8 +122,9 @@ const QtsUserExchangeAccount = () => {
                 allowClear
                 style={{ width: 150 }}
               >
-                <Option value="SPOT">现货</Option>
-                <Option value="FUTURES">合约</Option>
+                <Option value="SPOT">现货交易</Option>
+                <Option value="FUTURES">合约交易</Option>
+                <Option value="MARGIN">杠杆交易</Option>
               </Select>
             </Col>
             <Col>

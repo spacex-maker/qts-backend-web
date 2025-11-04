@@ -176,10 +176,27 @@ const QtsUserExchangeAccountCreateFormModal = ({
               label="交易类型"
               name="tradeType"
               rules={[{ required: true, message: '请选择交易类型' }]}
+              tooltip="选择交易账户的类型"
             >
-              <Select placeholder="请选择交易类型">
-                <Option value="SPOT">现货</Option>
-                <Option value="FUTURES">合约</Option>
+              <Select placeholder="请选择交易类型" optionLabelProp="label">
+                <Option value="SPOT" label="现货交易">
+                  <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 500 }}>现货交易</span>
+                    <span style={{ fontSize: '12px', color: '#999' }}>买卖实际的加密货币资产</span>
+                  </Space>
+                </Option>
+                <Option value="FUTURES" label="合约交易">
+                  <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 500 }}>合约交易</span>
+                    <span style={{ fontSize: '12px', color: '#999' }}>通过合约进行杠杆交易，不交割实物</span>
+                  </Space>
+                </Option>
+                <Option value="MARGIN" label="杠杆交易">
+                  <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 500 }}>杠杆交易</span>
+                    <span style={{ fontSize: '12px', color: '#999' }}>借币进行放大倍数的现货交易</span>
+                  </Space>
+                </Option>
               </Select>
             </Form.Item>
           </Col>
@@ -187,10 +204,21 @@ const QtsUserExchangeAccountCreateFormModal = ({
             <Form.Item
               label="合约类型"
               name="futuresType"
+              tooltip="仅合约交易需要选择"
             >
-              <Select placeholder="请选择合约类型" allowClear>
-                <Option value="USD_M">U本位</Option>
-                <Option value="COIN_M">币本位</Option>
+              <Select placeholder="请选择合约类型" allowClear optionLabelProp="label">
+                <Option value="USD_M" label="U本位合约">
+                  <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 500 }}>U本位合约</span>
+                    <span style={{ fontSize: '12px', color: '#999' }}>使用USDT作为保证金，适合大多数交易者</span>
+                  </Space>
+                </Option>
+                <Option value="COIN_M" label="币本位合约">
+                  <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 500 }}>币本位合约</span>
+                    <span style={{ fontSize: '12px', color: '#999' }}>使用对应币种作为保证金，适合持币者套保</span>
+                  </Space>
+                </Option>
               </Select>
             </Form.Item>
           </Col>

@@ -1,5 +1,7 @@
-import React from 'react';
-import { Modal, Form, Input, Select, InputNumber, Switch, Row, Col, Divider } from 'antd';
+import React, { useState } from 'react';
+import { Modal, Form, Input, Select, InputNumber, Switch, Row, Col, Divider, Space, Avatar, Tag, Spin } from 'antd';
+import debounce from 'lodash/debounce';
+import api from 'src/axiosInstance';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -10,6 +12,65 @@ const QtsUserExchangeAccountCreateFormModal = ({
   onFinish,
   form,
 }) => {
+  const [users, setUsers] = useState([]);
+  const [fetching, setFetching] = useState(false);
+
+  // 用户搜索（支持ID和用户名）
+  const fetchUsers = debounce(async (searchText) => {
+    if (!searchText) {
+      setUsers([]);
+      return;
+    }
+
+    setFetching(true);
+    try {
+      const params = {};
+      if (/^\d+$/.test(searchText)) {
+        params.id = parseInt(searchText);
+      } else {
+        params.username = searchText;
+      }
+
+      const response = await api.get('/manage/user/list-all-summary', { params });
+      if (response) {
+        // @ts-ignore - axios拦截器已经处理了响应数据
+        setUsers(response);
+      }
+    } catch (error) {
+      console.error('获取用户列表失败:', error);
+    } finally {
+      setFetching(false);
+    }
+  }, 500);
+
+  // 用户选项渲染
+  const userOption = (user) => (
+    <Select.Option
+      key={user.id}
+      value={user.id}
+      label={
+        <Space>
+          <Avatar size="small" src={user.avatar} />
+          <span>{user.username}</span>
+        </Space>
+      }
+    >
+      <Space align="center" style={{ width: '100%' }}>
+        <Avatar size="small" src={user.avatar} />
+        <span style={{ flex: 1 }}>{user.username}</span>
+        <Space size={4}>
+          {user.isBelongSystem && (
+            <Tag color="blue">系统用户</Tag>
+          )}
+          <Tag color={user.status ? 'success' : 'error'}>
+            {user.status ? '正常' : '禁用'}
+          </Tag>
+          <span style={{ color: '#999' }}>ID: {user.id}</span>
+        </Space>
+      </Space>
+    </Select.Option>
+  );
+
   return (
     <Modal
       title="新增交易账户"
@@ -31,11 +92,26 @@ const QtsUserExchangeAccountCreateFormModal = ({
         <Row gutter={24}>
           <Col span={12}>
             <Form.Item
-              label="用户ID"
+              label="选择用户"
               name="userId"
-              rules={[{ required: true, message: '请输入用户ID' }]}
+              rules={[{ required: true, message: '请选择用户' }]}
             >
-              <InputNumber style={{ width: '100%' }} placeholder="请输入用户ID" min={1} />
+              <Select
+                showSearch
+                allowClear
+                placeholder="请输入用户ID或用户名搜索"
+                onSearch={fetchUsers}
+                loading={fetching}
+                filterOption={false}
+                notFoundContent={fetching ? <Spin size="small" /> : null}
+                optionLabelProp="label"
+                dropdownStyle={{
+                  padding: 4,
+                  minWidth: 400
+                }}
+              >
+                {users.map(user => userOption(user))}
+              </Select>
             </Form.Item>
           </Col>
           <Col span={12}>

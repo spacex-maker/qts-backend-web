@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
-import { Modal, Form, Input, Select, InputNumber, Switch, Row, Col, Divider } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Modal, Form, Input, Select, InputNumber, Switch, Row, Col, Divider, Space, Avatar, Tag, Spin } from 'antd';
+import debounce from 'lodash/debounce';
+import api from 'src/axiosInstance';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -12,11 +14,92 @@ const UpdateQtsUserExchangeAccountModal = ({
   handleUpdateAccount,
   selectedAccount,
 }) => {
+  const [users, setUsers] = useState([]);
+  const [fetching, setFetching] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
   useEffect(() => {
     if (isVisible && selectedAccount) {
       form.setFieldsValue(selectedAccount);
+      // 获取当前用户信息用于显示
+      fetchUserById(selectedAccount.userId);
     }
   }, [isVisible, selectedAccount, form]);
+
+  // 根据ID获取用户信息
+  const fetchUserById = async (userId) => {
+    if (!userId) return;
+    try {
+      const response = await api.get('/manage/user/list-all-summary', { 
+        params: { id: userId } 
+      });
+      // @ts-ignore - axios拦截器已经处理了响应数据
+      if (response && response.length > 0) {
+        // @ts-ignore
+        setCurrentUser(response[0]);
+        // @ts-ignore
+        setUsers([response[0]]);
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+    }
+  };
+
+  // 用户搜索（支持ID和用户名）
+  const fetchUsers = debounce(async (searchText) => {
+    if (!searchText) {
+      setUsers(currentUser ? [currentUser] : []);
+      return;
+    }
+
+    setFetching(true);
+    try {
+      const params = {};
+      if (/^\d+$/.test(searchText)) {
+        params.id = parseInt(searchText);
+      } else {
+        params.username = searchText;
+      }
+
+      const response = await api.get('/manage/user/list-all-summary', { params });
+      if (response) {
+        // @ts-ignore - axios拦截器已经处理了响应数据
+        setUsers(response);
+      }
+    } catch (error) {
+      console.error('获取用户列表失败:', error);
+    } finally {
+      setFetching(false);
+    }
+  }, 500);
+
+  // 用户选项渲染
+  const userOption = (user) => (
+    <Select.Option
+      key={user.id}
+      value={user.id}
+      label={
+        <Space>
+          <Avatar size="small" src={user.avatar} />
+          <span>{user.username}</span>
+        </Space>
+      }
+    >
+      <Space align="center" style={{ width: '100%' }}>
+        <Avatar size="small" src={user.avatar} />
+        <span style={{ flex: 1 }}>{user.username}</span>
+        <Space size={4}>
+          {user.isBelongSystem && (
+            <Tag color="blue">系统用户</Tag>
+          )}
+          <Tag color={user.status ? 'success' : 'error'}>
+            {user.status ? '正常' : '禁用'}
+          </Tag>
+          <span style={{ color: '#999' }}>ID: {user.id}</span>
+        </Space>
+      </Space>
+    </Select.Option>
+  );
 
   return (
     <Modal
@@ -43,11 +126,26 @@ const UpdateQtsUserExchangeAccountModal = ({
         <Row gutter={24}>
           <Col span={12}>
             <Form.Item
-              label="用户ID"
+              label="用户"
               name="userId"
-              rules={[{ required: true, message: '请输入用户ID' }]}
+              rules={[{ required: true, message: '请选择用户' }]}
             >
-              <InputNumber style={{ width: '100%' }} placeholder="请输入用户ID" min={1} disabled />
+              <Select
+                showSearch
+                disabled
+                placeholder="请输入用户ID或用户名搜索"
+                onSearch={fetchUsers}
+                loading={fetching}
+                filterOption={false}
+                notFoundContent={fetching ? <Spin size="small" /> : null}
+                optionLabelProp="label"
+                dropdownStyle={{
+                  padding: 4,
+                  minWidth: 400
+                }}
+              >
+                {users.map(user => userOption(user))}
+              </Select>
             </Form.Item>
           </Col>
           <Col span={12}>

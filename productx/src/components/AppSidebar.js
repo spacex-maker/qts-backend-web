@@ -188,8 +188,8 @@ const AppSidebar = () => {
     >
       <BrandContainer>
         <BrandText $narrow={sidebarUnfoldable || !sidebarShow}>
-          <span className="full-brand">ProTX ADMIN</span>
-          <span className="single-letter">X</span>
+          <span className="full-brand">QTS ADMIN</span>
+          <span className="single-letter">Q</span>
         </BrandText>
       </BrandContainer>
       <style>

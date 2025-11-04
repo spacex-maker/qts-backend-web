@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import api from 'src/axiosInstance'
 import { Modal, Button, Form, Input, message, Spin, Col, Row, Space, Select } from 'antd'
-
-const { Option } = Select
 import { UseSelectableRows } from 'src/components/common/UseSelectableRows'
 import { HandleBatchDelete } from 'src/components/common/HandleBatchDelete'
 import Pagination from "src/components/common/Pagination"
-import QtsStrategyTable from "./QtsStrategyTable"
-import UpdateQtsStrategyModal from "./UpdateQtsStrategyModel"
-import QtsStrategyCreateFormModal from "./QtsStrategyCreateFormModel"
+import QtsUserExchangeAccountTable from "./QtsUserExchangeAccountTable"
+import UpdateQtsUserExchangeAccountModal from "./UpdateQtsUserExchangeAccountModel"
+import QtsUserExchangeAccountCreateFormModal from "./QtsUserExchangeAccountCreateFormModel"
 
-const QtsStrategy = () => {
+const { Option } = Select
+
+const QtsUserExchangeAccount = () => {
   const [data, setData] = useState([])
   const [totalNum, setTotalNum] = useState(0)
   const [currentPage, setCurrent] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchParams, setSearchParams] = useState({
-    strategyName: '',
-    strategyType: '',
-    symbol: '',
+    userId: '',
+    exchangeName: '',
+    accountName: '',
+    tradeType: '',
     status: undefined,
   })
 
@@ -27,7 +28,7 @@ const QtsStrategy = () => {
   const [createForm] = Form.useForm()
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false)
   const [updateForm] = Form.useForm()
-  const [selectedStrategy, setSelectedStrategy] = useState(null)
+  const [selectedAccount, setSelectedAccount] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -39,7 +40,7 @@ const QtsStrategy = () => {
       const filteredParams = Object.fromEntries(
         Object.entries(searchParams).filter(([_, value]) => value !== '' && value !== undefined)
       )
-      const response = await api.get('/manage/qts-strategy/list', {
+      const response = await api.get('/manage/qts-user-exchange-account/page', {
         params: { currentPage, pageSize, ...filteredParams },
       })
 
@@ -61,8 +62,8 @@ const QtsStrategy = () => {
     setSearchParams((prevParams) => ({ ...prevParams, [name]: value }))
   }
 
-  const handleEditClick = (strategy) => {
-    setSelectedStrategy(strategy)
+  const handleEditClick = (account) => {
+    setSelectedAccount(account)
     setIsUpdateModalVisible(true)
   }
 
@@ -88,30 +89,42 @@ const QtsStrategy = () => {
           <Row gutter={[16, 16]}>
             <Col>
               <Input
-                value={searchParams.strategyName}
-                onChange={(e) => handleSearchChange(e.target.value, 'strategyName')}
-                placeholder="策略名称"
+                value={searchParams.userId}
+                onChange={(e) => handleSearchChange(e.target.value, 'userId')}
+                placeholder="用户ID"
                 allowClear
                 style={{ width: 150 }}
               />
             </Col>
             <Col>
               <Input
-                value={searchParams.strategyType}
-                onChange={(e) => handleSearchChange(e.target.value, 'strategyType')}
-                placeholder="策略类型"
+                value={searchParams.exchangeName}
+                onChange={(e) => handleSearchChange(e.target.value, 'exchangeName')}
+                placeholder="交易所名称"
                 allowClear
                 style={{ width: 150 }}
               />
             </Col>
             <Col>
               <Input
-                value={searchParams.symbol}
-                onChange={(e) => handleSearchChange(e.target.value, 'symbol')}
-                placeholder="交易对"
+                value={searchParams.accountName}
+                onChange={(e) => handleSearchChange(e.target.value, 'accountName')}
+                placeholder="账户名称"
                 allowClear
                 style={{ width: 150 }}
               />
+            </Col>
+            <Col>
+              <Select
+                value={searchParams.tradeType}
+                onChange={(value) => handleSearchChange(value, 'tradeType')}
+                placeholder="交易类型"
+                allowClear
+                style={{ width: 150 }}
+              >
+                <Option value="SPOT">现货</Option>
+                <Option value="FUTURES">合约</Option>
+              </Select>
             </Col>
             <Col>
               <Select
@@ -121,8 +134,8 @@ const QtsStrategy = () => {
                 allowClear
                 style={{ width: 150 }}
               >
-                <Option value={true}>启用</Option>
-                <Option value={false}>禁用</Option>
+                <Option value={1}>正常</Option>
+                <Option value={0}>禁用</Option>
               </Select>
             </Col>
             <Col>
@@ -138,12 +151,12 @@ const QtsStrategy = () => {
                   type="primary"
                   onClick={() => setIsCreateModalVisible(true)}
                 >
-                  新增策略
+                  新增账户
                 </Button>
                 <Button
                   type="primary"
                   onClick={() => HandleBatchDelete({
-                    url: '/manage/qts-strategy/delete-batch',
+                    url: '/manage/qts-user-exchange-account/delete-batch',
                     selectedRows,
                     resetSelection,
                     fetchData,
@@ -160,7 +173,7 @@ const QtsStrategy = () => {
 
       <div className="table-responsive">
         <Spin spinning={isLoading}>
-          <QtsStrategyTable
+          <QtsUserExchangeAccountTable
             data={data}
             selectAll={selectAll}
             selectedRows={selectedRows}
@@ -179,12 +192,12 @@ const QtsStrategy = () => {
         onPageSizeChange={handlePageSizeChange}
       />
 
-      <QtsStrategyCreateFormModal
+      <QtsUserExchangeAccountCreateFormModal
         isVisible={isCreateModalVisible}
         onCancel={() => setIsCreateModalVisible(false)}
         onFinish={async (values) => {
           try {
-            await api.post('/manage/qts-strategy/create', values)
+            await api.post('/manage/qts-user-exchange-account/create', values)
             message.success('创建成功')
             setIsCreateModalVisible(false)
             createForm.resetFields()
@@ -196,14 +209,14 @@ const QtsStrategy = () => {
         form={createForm}
       />
 
-      <UpdateQtsStrategyModal
+      <UpdateQtsUserExchangeAccountModal
         isVisible={isUpdateModalVisible}
         onCancel={() => setIsUpdateModalVisible(false)}
         onOk={() => updateForm.submit()}
         form={updateForm}
-        handleUpdateStrategy={async (values) => {
+        handleUpdateAccount={async (values) => {
           try {
-            await api.post('/manage/qts-strategy/update', values)
+            await api.post('/manage/qts-user-exchange-account/update', values)
             message.success('更新成功')
             setIsUpdateModalVisible(false)
             updateForm.resetFields()
@@ -212,10 +225,11 @@ const QtsStrategy = () => {
             message.error('更新失败')
           }
         }}
-        selectedStrategy={selectedStrategy}
+        selectedAccount={selectedAccount}
       />
     </div>
   )
 }
 
-export default QtsStrategy
+export default QtsUserExchangeAccount
+

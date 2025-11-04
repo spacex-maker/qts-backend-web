@@ -188,39 +188,15 @@ const UserProductHotSearchRouter = React.lazy(
 
 const UserRequirementsRouter = React.lazy(() => import('./views/base/userRequirements/UserRequirements'));
 
-const MsxCloudProvidersRouter = React.lazy(() => import('./views/base/msxCloudProviders/MsxCloudProviders'));
-
-const MsxCloudProviderRegionsRouter = React.lazy(() => import('./views/base/msxCloudProviderRegions/MsxCloudProviderRegions'));
-
-const MsxCloudCredentialsRouter = React.lazy(() => import('./views/base/msxCloudCredentials/MsxCloudCredentials'));
-
-const MsxUserStorageRouter = React.lazy(() => import('./views/base/msxUserStorage/MsxUserStorage'));
-
-const MsxStorageBucketRouter = React.lazy(() => import('./views/base/msxStorageBucket/MsxStorageBucket'));
-
-const SaAiCompaniesRouter = React.lazy(() => import('./views/base/saAiCompanies/SaAiCompanies'));
-
-const SaAiAgentRouter = React.lazy(() => import('./views/base/saAiAgent/SaAiAgent'));
-
-const SaProjectRouter = React.lazy(() => import('./views/base/saProject/SaProject'));
-
-const SaAiAgentRoleRouter = React.lazy(() => import('./views/base/saAiAgentRole/SaAiAgentRole'));
-
-const SaAiModelsRouter = React.lazy(() => import('./views/base/saAiModels/SaAiModels'));
-
-const SaIndustryRouter = React.lazy(() => import('./views/base/saIndustry/SaIndustry'));
-
 const ServerInstancesRouter = React.lazy(() => import('./views/base/serverInstances/ServerInstances'));
 
 const AdminLoginLogsRouter = React.lazy(() => import('./views/base/adminLoginLogs/AdminLoginLogs'));
 
 const UserLoginLogsRouter = React.lazy(() => import('./views/base/userLoginLogs/UserLoginLogs'));
 
-const SaAiAgentCommentRouter = React.lazy(() => import('./views/base/saAiAgentComment/SaAiAgentComment'));
-
-const SaAiTokenUsageLogRouter = React.lazy(() => import('./views/base/saAiTokenUsageLog/SaAiTokenUsageLog'));
-
 const UserAccountChangeLogRouter = React.lazy(() => import('./views/base/userAccountChangeLog/UserAccountChangeLog'));
+
+const QtsUserExchangeAccountRouter = React.lazy(() => import('./views/base/qtsUserExchangeAccount/QtsUserExchangeAccount'));
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -424,15 +400,6 @@ const routes = [
     ),
   },
   {
-    path: '/data/ai',
-    name: 'XAI',
-    element: (
-      <PrivateRoute>
-        <XAI />
-      </PrivateRoute>
-    ),
-  },
-  {
     path: '/data/cos',
     name: '[系统]对象存储管理',
     element: (
@@ -604,6 +571,15 @@ const routes = [
     ),
   },
   {
+    path: '/sys/qtsUserExchangeAccount',
+    name: '用户交易所账户管理',
+    element: (
+      <PrivateRoute>
+        <QtsUserExchangeAccountRouter />
+      </PrivateRoute>
+    ),
+  },
+  {
     path: '/sys/qtsSymbol',
     name: '交易对管理',
     element: (
@@ -739,105 +715,6 @@ const routes = [
     ),
   },
   {
-    path: '/sys/msxCloudProviders',
-    name: 'MSX云提供商管理',
-    element: (
-      <PrivateRoute>
-        <MsxCloudProvidersRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/msxCloudProviderRegions',
-    name: 'MSX云提供商区域管理',
-    element: (
-      <PrivateRoute>
-        <MsxCloudProviderRegionsRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/msxCloudCredentials',
-    name: 'MSX云凭证管理',
-    element: (
-      <PrivateRoute>
-        <MsxCloudCredentialsRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/msxUserStorage',
-    name: 'MSX用户存储管理',
-    element: (
-      <PrivateRoute>
-        <MsxUserStorageRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/msxStorageBucket',
-    name: 'MSX存储桶管理',
-    element: (
-      <PrivateRoute>
-        <MsxStorageBucketRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saAiCompanies',
-    name: 'AI公司管理',
-    element: (
-      <PrivateRoute>
-        <SaAiCompaniesRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saAiAgent',
-    name: 'AI代理管理',
-    element: (
-      <PrivateRoute>
-        <SaAiAgentRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saProject',
-    name: 'AI项目管理',
-    element: (
-      <PrivateRoute>
-        <SaProjectRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saAiAgentRole',
-    name: 'AI角色管理',
-    element: (
-      <PrivateRoute>
-        <SaAiAgentRoleRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saAiModels',
-    name: 'AI模型管理',
-    element: (
-      <PrivateRoute>
-        <SaAiModelsRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/sys/saIndustry',
-    name: '行业管理',
-    element: (
-      <PrivateRoute>
-        <SaIndustryRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
     path: '/base/serverInstances',
     name: '服务器实例管理',
     element: (
@@ -861,24 +738,6 @@ const routes = [
     element: (
       <PrivateRoute>
         <UserLoginLogsRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/base/saAiAgentComment',
-    name: 'AI助手评论管理',
-    element: (
-      <PrivateRoute>
-        <SaAiAgentCommentRouter />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: '/base/saAiTokenUsageLog',
-    name: 'Token使用日志',
-    element: (
-      <PrivateRoute>
-        <SaAiTokenUsageLogRouter />
       </PrivateRoute>
     ),
   },

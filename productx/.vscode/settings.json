@@ -1,0 +1,10 @@
+{
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    "eslint.validate": [
+      "javascript",
+      "typescript"
+    ],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always"
+    }
+  }

@@ -203,7 +203,7 @@ const QtsStrategy = () => {
         form={updateForm}
         handleUpdateStrategy={async (values) => {
           try {
-            await api.post('/manage/qts-strategy/update', values)
+            await api.put('/manage/qts-strategy/update', values)
             message.success('更新成功')
             setIsUpdateModalVisible(false)
             updateForm.resetFields()

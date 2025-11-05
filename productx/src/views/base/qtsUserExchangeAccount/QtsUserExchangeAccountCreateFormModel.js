@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Switch, Row, Col, Divider, Space, Avatar, Tag, Spin } from 'antd';
 import debounce from 'lodash/debounce';
 import api from 'src/axiosInstance';
@@ -14,6 +14,30 @@ const QtsUserExchangeAccountCreateFormModal = ({
 }) => {
   const [users, setUsers] = useState([]);
   const [fetching, setFetching] = useState(false);
+  const [exchanges, setExchanges] = useState([]);
+  const [exchangesLoading, setExchangesLoading] = useState(false);
+
+  // 获取交易所列表
+  useEffect(() => {
+    const fetchExchanges = async () => {
+      setExchangesLoading(true);
+      try {
+        const response = await api.get('/manage/qts-supported-exchanges/enabled');
+        if (response) {
+          // @ts-ignore - axios拦截器已经处理了响应数据
+          setExchanges(response);
+        }
+      } catch (error) {
+        console.error('获取交易所列表失败:', error);
+      } finally {
+        setExchangesLoading(false);
+      }
+    };
+
+    if (isVisible) {
+      fetchExchanges();
+    }
+  }, [isVisible]);
 
   // 用户搜索（支持ID和用户名）
   const fetchUsers = debounce(async (searchText) => {
@@ -116,11 +140,26 @@ const QtsUserExchangeAccountCreateFormModal = ({
           </Col>
           <Col span={12}>
             <Form.Item
-              label="交易所名称"
+              label="交易所"
               name="exchangeName"
-              rules={[{ required: true, message: '请输入交易所名称' }]}
+              rules={[{ required: true, message: '请选择交易所' }]}
             >
-              <Input placeholder="如：Binance" />
+              <Select 
+                placeholder="请选择交易所" 
+                loading={exchangesLoading}
+                showSearch
+                optionFilterProp="label"
+                optionLabelProp="label"
+              >
+                {exchanges.map(exchange => (
+                  <Option key={exchange.id} value={exchange.exchangeName} label={exchange.exchangeName}>
+                    <Space direction="vertical" size={0}>
+                      <span style={{ fontWeight: 500 }}>{exchange.exchangeName}</span>
+                      <span style={{ fontSize: '12px', color: '#999' }}>{exchange.info}</span>
+                    </Space>
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
         </Row>
@@ -164,6 +203,27 @@ const QtsUserExchangeAccountCreateFormModal = ({
               rules={[{ required: true, message: '请输入API Secret' }]}
             >
               <Input.Password placeholder="请输入API Secret" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item
+              label="API Passphrase"
+              name="apiPassphrase"
+              tooltip="OKX等交易所需要"
+            >
+              <Input.Password placeholder="OKX等交易所需要" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="IP白名单"
+              name="ipWhitelist"
+              tooltip="多个IP用逗号分隔"
+            >
+              <Input placeholder="多个IP用逗号分隔" />
             </Form.Item>
           </Col>
         </Row>
@@ -351,8 +411,8 @@ const QtsUserExchangeAccountCreateFormModal = ({
           </Col>
         </Row>
 
-        {/* 备注信息 */}
-        <Divider orientation="left">备注信息</Divider>
+        {/* 其他配置 */}
+        <Divider orientation="left">其他配置</Divider>
         <Row gutter={24}>
           <Col span={24}>
             <Form.Item
@@ -361,7 +421,28 @@ const QtsUserExchangeAccountCreateFormModal = ({
               labelCol={{ span: 4 }}
               wrapperCol={{ span: 20 }}
             >
-              <TextArea rows={3} placeholder="请输入备注信息" />
+              <TextArea rows={2} placeholder="请输入备注信息" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item
+              label="风控配置"
+              name="riskConfig"
+              tooltip="JSON格式的风控配置"
+            >
+              <TextArea rows={3} placeholder='{"maxDrawdown": 10, "maxLoss": 1000}' />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="策略配置"
+              name="strategyConfig"
+              tooltip="JSON格式的策略配置"
+            >
+              <TextArea rows={3} placeholder='{"strategy": "grid", "gridNum": 10}' />
             </Form.Item>
           </Col>
         </Row>

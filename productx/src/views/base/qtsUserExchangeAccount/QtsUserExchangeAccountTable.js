@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Tag, Space } from 'antd';
+import { Button, Tag, Space, Avatar } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 
 // 交易类型配置
 const TRADE_TYPE_CONFIG = {
@@ -36,13 +37,29 @@ const formatSwitchStatus = (enabled) => {
     <Tag color="default">禁用</Tag>;
 };
 
+// 格式化用户信息显示
+const formatUserInfo = (userId, username, avatar) => {
+  return (
+    <Space size={8}>
+      <Avatar size={40} src={avatar} icon={!avatar && <UserOutlined />} />
+      <Space direction="vertical" size={0}>
+        <span style={{ fontWeight: 500 }}>{username || '-'}</span>
+        <span style={{ fontSize: '12px', color: '#999' }}>ID: {userId}</span>
+      </Space>
+    </Space>
+  );
+};
+
 // 格式化账户名称和状态
-const formatAccountNameWithStatus = (accountName, status, statusDesc) => {
+const formatAccountNameWithStatus = (id, accountName, status, statusDesc) => {
   const statusColor = status === 1 ? 'success' : 'error';
   return (
-    <Space size={4}>
-      <span>{accountName}</span>
-      <Tag color={statusColor}>{statusDesc}</Tag>
+    <Space direction="vertical" size={0}>
+      <Space size={4}>
+        <span style={{ fontWeight: 500 }}>{accountName}</span>
+        <Tag color={statusColor}>{statusDesc}</Tag>
+      </Space>
+      <span style={{ fontSize: '12px', color: '#999' }}>账户ID: {id}</span>
     </Space>
   );
 };
@@ -72,7 +89,7 @@ const QtsUserExchangeAccountTable = ({
             </div>
           </th>
           {[
-            '用户ID', '交易所', '账户名称', '交易类型', '合约类型', 
+            '用户信息', '交易所', '账户名称', '交易类型', '合约类型', 
             '最大交易金额', '杠杆倍数', '自动交易', 'AI策略', 
             '账户余额', 'API验证状态', '创建时间', '更新时间'
           ].map((field) => (
@@ -99,9 +116,9 @@ const QtsUserExchangeAccountTable = ({
                 ></label>
               </div>
             </td>
-            <td>{item.userId}</td>
+            <td>{formatUserInfo(item.userId, item.username, item.avatar)}</td>
             <td>{item.exchangeName}</td>
-            <td>{formatAccountNameWithStatus(item.accountName, item.status, item.statusDesc)}</td>
+            <td>{formatAccountNameWithStatus(item.id, item.accountName, item.status, item.statusDesc)}</td>
             <td>{formatTradeType(item.tradeType)}</td>
             <td>{formatFuturesType(item.futuresType)}</td>
             <td>{item.maxTradeAmount}</td>

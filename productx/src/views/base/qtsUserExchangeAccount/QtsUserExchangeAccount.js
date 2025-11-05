@@ -217,7 +217,10 @@ const QtsUserExchangeAccount = () => {
         form={updateForm}
         handleUpdateAccount={async (values) => {
           try {
-            await api.post('/manage/qts-user-exchange-account/update', values)
+            const { userId, ...requestData } = values
+            await api.put('/manage/qts-user-exchange-account/update', requestData, {
+              params: { userId }
+            })
             message.success('更新成功')
             setIsUpdateModalVisible(false)
             updateForm.resetFields()

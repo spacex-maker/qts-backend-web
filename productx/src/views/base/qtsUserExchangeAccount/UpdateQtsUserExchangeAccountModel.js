@@ -150,11 +150,12 @@ const UpdateQtsUserExchangeAccountModal = ({
           </Col>
           <Col span={12}>
             <Form.Item
-              label="交易所名称"
+              label="交易所"
               name="exchangeName"
-              rules={[{ required: true, message: '请输入交易所名称' }]}
+              rules={[{ required: true, message: '请选择交易所' }]}
+              tooltip="交易所不可修改"
             >
-              <Input placeholder="如：Binance" />
+              <Input disabled />
             </Form.Item>
           </Col>
         </Row>
@@ -197,6 +198,27 @@ const UpdateQtsUserExchangeAccountModal = ({
               name="apiSecret"
             >
               <Input.Password placeholder="留空则不修改" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item
+              label="API Passphrase"
+              name="apiPassphrase"
+              tooltip="OKX等交易所需要"
+            >
+              <Input.Password placeholder="OKX等交易所需要" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="IP白名单"
+              name="ipWhitelist"
+              tooltip="多个IP用逗号分隔"
+            >
+              <Input placeholder="多个IP用逗号分隔" />
             </Form.Item>
           </Col>
         </Row>
@@ -380,8 +402,8 @@ const UpdateQtsUserExchangeAccountModal = ({
           </Col>
         </Row>
 
-        {/* 备注信息 */}
-        <Divider orientation="left">备注信息</Divider>
+        {/* 其他配置 */}
+        <Divider orientation="left">其他配置</Divider>
         <Row gutter={24}>
           <Col span={24}>
             <Form.Item
@@ -390,7 +412,28 @@ const UpdateQtsUserExchangeAccountModal = ({
               labelCol={{ span: 4 }}
               wrapperCol={{ span: 20 }}
             >
-              <TextArea rows={3} placeholder="请输入备注信息" />
+              <TextArea rows={2} placeholder="请输入备注信息" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={24}>
+          <Col span={12}>
+            <Form.Item
+              label="风控配置"
+              name="riskConfig"
+              tooltip="JSON格式的风控配置"
+            >
+              <TextArea rows={3} placeholder='{"maxDrawdown": 10, "maxLoss": 1000}' />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              label="策略配置"
+              name="strategyConfig"
+              tooltip="JSON格式的策略配置"
+            >
+              <TextArea rows={3} placeholder='{"strategy": "grid", "gridNum": 10}' />
             </Form.Item>
           </Col>
         </Row>

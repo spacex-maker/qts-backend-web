@@ -198,6 +198,10 @@ const UserAccountChangeLogRouter = React.lazy(() => import('./views/base/userAcc
 
 const QtsUserExchangeAccountRouter = React.lazy(() => import('./views/base/qtsUserExchangeAccount/QtsUserExchangeAccount'));
 
+const QtsFundingConfigRouter = React.lazy(() => import('./views/base/qtsFundingConfig/QtsFundingConfig'));
+
+const QtsFundingRateRouter = React.lazy(() => import('./views/base/qtsFundingRate/QtsFundingRate'));
+
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/login', name: '登录', element: LoginPage },
@@ -639,6 +643,24 @@ const routes = [
     element: (
       <PrivateRoute>
         <QtsMarketDataRouter />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: '/sys/qtsFundingConfig',
+    name: '资金费率同步配置',
+    element: (
+      <PrivateRoute>
+        <QtsFundingConfigRouter />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: '/sys/qtsFundingRate',
+    name: '资金费率历史',
+    element: (
+      <PrivateRoute>
+        <QtsFundingRateRouter />
       </PrivateRoute>
     ),
   },

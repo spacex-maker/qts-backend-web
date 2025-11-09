@@ -18,6 +18,14 @@ export default defineConfig(() => {
           autoprefixer({}),
         ],
       },
+      preprocessorOptions: {
+        scss: {
+          quietDeps: true,
+          logger: {
+            warn: () => {}, // 抑制警告
+          },
+        },
+      },
     },
     esbuild: {
       loader: 'jsx',

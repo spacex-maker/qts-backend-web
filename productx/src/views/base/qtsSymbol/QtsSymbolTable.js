@@ -43,6 +43,54 @@ const QtsSymbolTable = ({
     );
   };
 
+  const getSymbolWithStatus = (item) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div>{item.symbol}</div>
+        <div>状态: {getStatusTag(item.status)}</div>
+      </div>
+    );
+  };
+
+  const getKlineSyncInfo = (item) => {
+    const syncStatusTag = getSyncStatusTag(item.syncStatus);
+    const syncEnabledTag = (
+      <Tag color={item.syncEnabled ? 'green' : 'red'}>
+        {item.syncEnabled ? '启用' : '禁用'}
+      </Tag>
+    );
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div>状态: {syncStatusTag}</div>
+        <div>开关: {syncEnabledTag}</div>
+      </div>
+    );
+  };
+
+  const getFundingSyncInfo = (item) => {
+    const fundingConfig = item.fundingSyncConfig || {};
+    const syncEnabled = fundingConfig.syncEnabled;
+    const syncEnabledTag = syncEnabled === 1 ? (
+      <Tag color="green">启用</Tag>
+    ) : syncEnabled === 0 ? (
+      <Tag color="red">禁用</Tag>
+    ) : (
+      <Tag color="default">未配置</Tag>
+    );
+    
+    const syncFrequency = fundingConfig.syncFrequency || '未设置';
+    const lastSyncTime = fundingConfig.lastSyncTime || '未同步';
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+        <div>开关: {syncEnabledTag}</div>
+        <div>频率: {syncFrequency}</div>
+        <div>最后同步时间: {lastSyncTime}</div>
+      </div>
+    );
+  };
+
   return (
     <table className="table table-bordered table-striped">
       <thead>
@@ -60,8 +108,8 @@ const QtsSymbolTable = ({
             </div>
           </th>
           {[
-            '交易所', '交易对', '基础币种', '计价币种', '状态',
-            '同步状态', '同步开关'
+            '交易所', '交易对', '基础币种', '计价币种',
+            'K线同步信息', '资金费率同步信息'
           ].map((field) => (
             <th key={field}>{field}</th>
           ))}
@@ -87,16 +135,11 @@ const QtsSymbolTable = ({
               </div>
             </td>
             <td>{item.exchangeName}</td>
-            <td>{item.symbol}</td>
+            <td>{getSymbolWithStatus(item)}</td>
             <td>{item.baseAsset}</td>
             <td>{item.quoteAsset}</td>
-            <td>{getStatusTag(item.status)}</td>
-            <td>{getSyncStatusTag(item.syncStatus)}</td>
-            <td>
-              <Tag color={item.syncEnabled ? 'green' : 'red'}>
-                {item.syncEnabled ? '启用' : '禁用'}
-              </Tag>
-            </td>
+            <td>{getKlineSyncInfo(item)}</td>
+            <td>{getFundingSyncInfo(item)}</td>
             <td className="fixed-column">
               <Button type="link" onClick={() => handleEditClick(item)}>
                 修改

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Select, Button, message, Spin, Row, Col, Card, Statistic } from 'antd';
 import { LineChartOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
@@ -13,6 +13,7 @@ const QtsFundingRateChart = () => {
   const [chartData, setChartData] = useState([]);
   const [dataRange, setDataRange] = useState({ minTime: null, maxTime: null });
   const [loadingDirection, setLoadingDirection] = useState(null); // 'left' | 'right' | null
+  const [timeRange, setTimeRange] = useState('30'); // 默认30天
   const [statistics, setStatistics] = useState({
     avg: 0,
     max: 0,
@@ -27,56 +28,48 @@ const QtsFundingRateChart = () => {
     'MATICUSDT', 'LINKUSDT', 'UNIUSDT', 'LTCUSDT'
   ];
 
-  useEffect(() => {
-    fetchEnabledExchanges();
-  }, []);
+  // 时间范围选项
+  const timeRangeOptions = [
+    { label: '近7天', value: '7' },
+    { label: '近30天', value: '30' },
+    { label: '近90天', value: '90' },
+    { label: '近180天', value: '180' },
+    { label: '全部', value: 'all' }
+  ];
 
   const fetchEnabledExchanges = async () => {
     try {
       const response = await api.get('/manage/qts-supported-exchanges/enabled');
-      if (Array.isArray(response)) {
+      if (Array.isArray(response) && response.length > 0) {
         setExchanges(response);
+        // 自动选择第一个交易所和第一个交易对
+        const firstExchange = response[0].exchangeName;
+        setSelectedExchange(firstExchange);
+        if (popularSymbols.length > 0) {
+          setSelectedSymbol(popularSymbols[0]);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch exchanges:', error);
     }
   };
 
-  const fetchChartData = async () => {
-    if (!selectedExchange || !selectedSymbol) {
-      message.warning('请先选择交易所和交易对');
-      return;
+  // 根据时间范围计算开始和结束时间
+  const getTimeRange = useCallback((range) => {
+    const endTime = new Date();
+    let startTime = null;
+
+    if (range === 'all') {
+      return { startTime: null, endTime: null };
     }
 
-    setLoading(true);
-    setChartData([]);
-    setDataRange({ minTime: null, maxTime: null });
-    try {
-      // 获取该交易对的历史数据，按时间排序
-      const response = await api.get('/manage/qts/funding-rate/page', {
-        params: {
-          exchange: selectedExchange,
-          symbol: selectedSymbol,
-          currentPage: 1,
-          pageSize: 100, // 获取最近100条数据
-        },
-      });
-
-      if (response && response.data) {
-        const data = response.data.sort((a, b) => 
-          new Date(a.fundingTime).getTime() - new Date(b.fundingTime).getTime()
-        );
-        setChartData(data);
-        updateDataRange(data);
-        calculateStatistics(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch chart data:', error);
-      message.error('获取数据失败');
-    } finally {
-      setLoading(false);
+    const days = parseInt(range, 10);
+    if (!isNaN(days)) {
+      startTime = new Date(endTime.getTime() - days * 24 * 60 * 60 * 1000);
     }
-  };
+
+    return { startTime, endTime };
+  }, []);
 
   const updateDataRange = (data) => {
     if (data.length === 0) {
@@ -108,6 +101,61 @@ const QtsFundingRateChart = () => {
 
     setStatistics({ avg, max, min, latest });
   };
+
+  const fetchChartData = useCallback(async () => {
+    if (!selectedExchange || !selectedSymbol) {
+      return;
+    }
+
+    setLoading(true);
+    setChartData([]);
+    setDataRange({ minTime: null, maxTime: null });
+    try {
+      // 根据时间范围计算开始和结束时间
+      const { startTime, endTime } = getTimeRange(timeRange);
+      
+      const params = {
+        exchange: selectedExchange,
+        symbol: selectedSymbol,
+        currentPage: 1,
+        pageSize: 1000, // 增加页面大小以获取更多数据
+      };
+
+      // 如果有时间范围限制，添加时间参数
+      if (startTime && endTime) {
+        params.startTime = startTime.toISOString().replace('T', ' ').substring(0, 19);
+        params.endTime = endTime.toISOString().replace('T', ' ').substring(0, 19);
+      }
+
+      // 获取该交易对的历史数据，按时间排序
+      const response = await api.get('/manage/qts/funding-rate/page', { params });
+
+      if (response && response.data) {
+        const data = response.data.sort((a, b) => 
+          new Date(a.fundingTime).getTime() - new Date(b.fundingTime).getTime()
+        );
+        setChartData(data);
+        updateDataRange(data);
+        calculateStatistics(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch chart data:', error);
+      message.error('获取数据失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedExchange, selectedSymbol, timeRange, getTimeRange]);
+
+  useEffect(() => {
+    fetchEnabledExchanges();
+  }, []);
+
+  // 当交易所或交易对改变时，自动加载数据
+  useEffect(() => {
+    if (selectedExchange && selectedSymbol) {
+      fetchChartData();
+    }
+  }, [selectedExchange, selectedSymbol, timeRange, fetchChartData]);
 
   // 加载更早的数据（向左滑动）
   const loadEarlierData = async () => {
@@ -367,7 +415,7 @@ const QtsFundingRateChart = () => {
   return (
     <div>
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
+        <Col span={5}>
           <Select
             value={selectedExchange}
             onChange={setSelectedExchange}
@@ -383,7 +431,7 @@ const QtsFundingRateChart = () => {
             ))}
           </Select>
         </Col>
-        <Col span={6}>
+        <Col span={5}>
           <Select
             value={selectedSymbol}
             onChange={setSelectedSymbol}
@@ -395,6 +443,20 @@ const QtsFundingRateChart = () => {
             {popularSymbols.map((symbol) => (
               <Select.Option key={symbol} value={symbol}>
                 {symbol}
+              </Select.Option>
+            ))}
+          </Select>
+        </Col>
+        <Col span={4}>
+          <Select
+            value={timeRange}
+            onChange={setTimeRange}
+            placeholder="选择时间范围"
+            style={{ width: '100%' }}
+          >
+            {timeRangeOptions.map((option) => (
+              <Select.Option key={option.value} value={option.value}>
+                {option.label}
               </Select.Option>
             ))}
           </Select>

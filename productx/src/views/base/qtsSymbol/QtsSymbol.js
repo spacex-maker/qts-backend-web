@@ -32,10 +32,29 @@ const QtsSymbol = () => {
   const [selectedSymbol, setSelectedSymbol] = useState(null)
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
   const [selectedSymbolForDetails, setSelectedSymbolForDetails] = useState(null)
+  const [exchanges, setExchanges] = useState([])
+  const [loadingExchanges, setLoadingExchanges] = useState(false)
 
   useEffect(() => {
     fetchData()
   }, [currentPage, pageSize, searchParams])
+
+  useEffect(() => {
+    fetchEnabledExchanges()
+  }, [])
+
+  const fetchEnabledExchanges = async () => {
+    try {
+      setLoadingExchanges(true)
+      const response = await api.get('/manage/qts-supported-exchanges/enabled')
+      setExchanges(Array.isArray(response) ? response : [])
+    } catch (error) {
+      console.error('Failed to fetch exchanges:', error)
+      message.error('获取交易所列表失败')
+    } finally {
+      setLoadingExchanges(false)
+    }
+  }
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -88,13 +107,30 @@ const QtsSymbol = () => {
         <div className="search-container">
           <Row gutter={[16, 16]}>
             <Col>
-              <Input
+              <Select
                 value={searchParams.exchangeName}
-                onChange={(e) => handleSearchChange(e.target.value, 'exchangeName')}
+                onChange={(value) => handleSearchChange(value, 'exchangeName')}
                 placeholder="交易所名称"
                 allowClear
+                loading={loadingExchanges}
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) => {
+                  const children = option?.children;
+                  const text = typeof children === 'string' ? children : String(children || '');
+                  return text.toLowerCase().includes(input.toLowerCase());
+                }}
                 style={{ width: 150 }}
-              />
+              >
+                {exchanges.map((exchange) => (
+                  <Select.Option 
+                    key={exchange.id} 
+                    value={exchange.exchangeName}
+                  >
+                    {exchange.exchangeName}
+                  </Select.Option>
+                ))}
+              </Select>
             </Col>
             <Col>
               <Input

@@ -576,7 +576,7 @@ const routes = [
   },
   {
     path: '/sys/qtsUserExchangeAccount',
-    name: '用户交易所账户管理',
+    name: '用户交易账户',
     element: (
       <PrivateRoute>
         <QtsUserExchangeAccountRouter />

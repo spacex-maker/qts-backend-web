@@ -290,7 +290,10 @@
     "管理员日志": "Admin-Protokolle",
     "Token使用日志": "Token-Verwendung-Protokolle",
     "AI助手评论": "AI-Assistent-Kommentare",
-    "用户账务记录": "Benutzerkontenänderungsprotokolle"
+    "用户账务记录": "Benutzerkontenänderungsprotokolle",
+    "资金费率历史": "Finanzierungssatz-Verlauf",
+    "资金费率同步配置": "Finanzierungssatz-Synchronisationskonfiguration",
+    "用户交易账户": "Benutzerhandelskonto"
   },
   "confirmDelete": "Löschen bestätigen",
   "countryName": "Landname",

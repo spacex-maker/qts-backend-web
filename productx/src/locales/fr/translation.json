@@ -291,7 +291,10 @@
     "管理员日志": "Journaux d'administration",
     "Token使用日志": "Journaux d'utilisation des jetons",
     "AI助手评论": "Commentaires de l'assistant IA",
-    "用户账务记录": "Enregistrements de modifications de compte utilisateur"
+    "用户账务记录": "Enregistrements de modifications de compte utilisateur",
+    "资金费率历史": "Historique du taux de financement",
+    "资金费率同步配置": "Configuration de synchronisation du taux de financement",
+    "用户交易账户": "Compte de trading utilisateur"
   },
   "confirmDelete": "Confirmer la suppression",
   "countryName": "Nom du pays",

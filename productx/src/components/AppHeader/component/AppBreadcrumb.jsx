@@ -1,14 +1,22 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CBreadcrumb, CBreadcrumbItem } from '@coreui/react';
 import routes from '../../../routes';
 
 const AppBreadcrumb = () => {
   const currentLocation = useLocation().pathname;
+  const { t } = useTranslation();
 
   const getRouteName = (pathname, routes) => {
     const currentRoute = routes.find((route) => route.path === pathname);
-    return currentRoute ? currentRoute.name : false;
+    if (!currentRoute) return false;
+    
+    // 尝试从国际化配置中获取翻译，如果不存在则使用原始名称
+    const translationKey = `menu.${currentRoute.name}`;
+    const translatedName = t(translationKey, { defaultValue: currentRoute.name });
+    
+    return translatedName;
   };
 
   const getBreadcrumbs = (location) => {

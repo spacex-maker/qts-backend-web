@@ -67,6 +67,20 @@ const QtsMarketDataChart = ({
           secondsVisible: true,
           borderColor: theme === 'dark' ? '#2e3947' : '#e0e0e0',
         },
+        localization: {
+          timeFormatter: (time) => {
+            const date = new Date(time * 1000);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            // 显示完整的年月日时分秒，确保年份可见
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          },
+        },
         rightPriceScale: {
           borderColor: theme === 'dark' ? '#2e3947' : '#e0e0e0',
           scaleMargins: {

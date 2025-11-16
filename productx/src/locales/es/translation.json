@@ -291,7 +291,10 @@
     "管理员日志": "Registro de administrador",
     "Token使用日志": "Registro de uso de tokens",
     "AI助手评论": "Comentarios del asistente de IA",
-    "用户账务记录": "Registro de cambios de cuenta de usuario"
+    "用户账务记录": "Registro de cambios de cuenta de usuario",
+    "资金费率历史": "Historial de tasa de financiación",
+    "资金费率同步配置": "Configuración de sincronización de tasa de financiación",
+    "用户交易账户": "Cuenta de trading de usuario"
   },
   "confirmDelete": "Confirmar eliminación",
   "countryName": "Nombre del país",

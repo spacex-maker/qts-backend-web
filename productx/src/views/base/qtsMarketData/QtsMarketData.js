@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import api from 'src/axiosInstance'
-import { Button, Form, Input, message, Spin, Col, Row, Space, DatePicker, Tag, Select, Card, Radio, Tabs } from 'antd'
+import { Button, Form, Input, message, Spin, Col, Row, Space, DatePicker, Tag, Select, Card, Radio, Tabs, Modal } from 'antd'
 import Pagination from "src/components/common/Pagination"
 import QtsMarketDataTable from "./QtsMarketDataTable"
 import QtsMarketDataChart from "./QtsMarketDataChart"
 import dayjs from 'dayjs'
 import moment from 'moment'
-import { SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined, SyncOutlined } from '@ant-design/icons';
 
 const { RangePicker } = DatePicker;
 
@@ -66,6 +66,11 @@ const QtsMarketData = () => {
 
   const [chartForm] = Form.useForm();
   const [listForm] = Form.useForm();
+  const [syncForm] = Form.useForm();
+  
+  // 同步相关状态
+  const [syncModalVisible, setSyncModalVisible] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   
   // 快捷时间范围选项
   const timeRangeOptions = [
@@ -319,6 +324,92 @@ const QtsMarketData = () => {
     });
   };
 
+  // 打开同步模态框
+  const handleOpenSyncModal = async () => {
+    const chartValues = chartForm.getFieldsValue();
+    if (!chartValues.exchangeName || !chartValues.symbol) {
+      message.warning('请先选择交易所和交易对');
+      return;
+    }
+    
+    // 确保交易对列表已加载
+    if (symbols.length === 0 || !symbols.find(s => s.symbol === chartValues.symbol)) {
+      await fetchSymbols(chartValues.exchangeName);
+    }
+    
+    // 初始化同步表单，使用当前选择的交易所和交易对
+    syncForm.setFieldsValue({
+      exchangeName: chartValues.exchangeName,
+      symbol: chartValues.symbol,
+      interval: chartValues.interval || undefined, // 可选，不填则同步全部周期
+      dateRange: chartValues.dateRange || getDefaultDateRange()
+    });
+    
+    setSyncModalVisible(true);
+  };
+
+  // 关闭同步模态框
+  const handleCloseSyncModal = () => {
+    setSyncModalVisible(false);
+    syncForm.resetFields();
+  };
+
+  // 执行同步
+  const handleSync = async () => {
+    try {
+      const values = await syncForm.validateFields();
+      const { dateRange, ...rest } = values;
+      const [startDate, endDate] = dateRange || [];
+      
+      if (!startDate) {
+        message.error('请选择开始时间');
+        return;
+      }
+
+      setSyncing(true);
+      
+      const params = {
+        exchangeName: rest.exchangeName,
+        symbol: rest.symbol,
+        startTime: startDate.valueOf(),
+        autoExe: false  // 手动调用时默认为false
+      };
+      
+      // 如果选择了结束时间，则添加到参数中
+      if (endDate) {
+        params.endTime = endDate.valueOf();
+      }
+      
+      // 如果选择了周期，则添加到参数中
+      if (rest.interval) {
+        params.interval = rest.interval;
+      }
+
+      await api.post('/manage/qts-market-data/sync', params);
+      
+      message.success('同步任务已提交，数据正在同步中...');
+      handleCloseSyncModal();
+      
+      // 可选：同步成功后刷新图表数据
+      // 延迟一下再刷新，给后端一些处理时间
+      setTimeout(() => {
+        const chartValues = chartForm.getFieldsValue();
+        if (chartValues.exchangeName && chartValues.symbol) {
+          handleChartSearch(chartValues);
+        }
+      }, 2000);
+    } catch (error) {
+      if (error.errorFields) {
+        // 表单验证错误
+        return;
+      }
+      console.error('同步失败:', error);
+      message.error(error?.response?.data?.message || '同步失败，请稍后重试');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const totalPages = Math.ceil(totalNum / pageSize)
 
   return (
@@ -428,6 +519,13 @@ const QtsMarketData = () => {
                         >
                           查询
                         </Button>
+                        <Button 
+                          type="default" 
+                          onClick={handleOpenSyncModal}
+                          icon={<SyncOutlined />}
+                        >
+                          手动同步
+                        </Button>
                       </Space>
                     </Form.Item>
                   </Form>
@@ -435,6 +533,91 @@ const QtsMarketData = () => {
 
                 {/* 图表展示区域 */}
                 {chartParams && <QtsMarketDataChart {...chartParams} />}
+
+                {/* 同步模态框 */}
+                <Modal
+                  title="手动同步市场数据"
+                  open={syncModalVisible}
+                  onCancel={handleCloseSyncModal}
+                  onOk={handleSync}
+                  confirmLoading={syncing}
+                  okText="开始同步"
+                  cancelText="取消"
+                  width={600}
+                >
+                  <Form
+                    form={syncForm}
+                    layout="vertical"
+                    initialValues={{
+                      dateRange: getDefaultDateRange()
+                    }}
+                  >
+                    <Form.Item
+                      name="exchangeName"
+                      label="交易所"
+                      rules={[{ required: true, message: '请选择交易所' }]}
+                    >
+                      <Select
+                        placeholder="选择交易所"
+                        disabled
+                        options={exchanges.map(exchange => ({
+                          label: exchange.exchangeName,
+                          value: exchange.exchangeName
+                        }))}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="symbol"
+                      label="交易对"
+                      rules={[{ required: true, message: '请选择交易对' }]}
+                    >
+                      <Select
+                        placeholder="选择交易对"
+                        disabled
+                        options={symbols.map(symbol => ({
+                          label: symbol.symbol,
+                          value: symbol.symbol
+                        }))}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="interval"
+                      label="K线周期"
+                      tooltip="不选择则同步全部周期"
+                    >
+                      <Select
+                        placeholder="选择K线周期（可选）"
+                        allowClear
+                        options={INTERVALS}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="dateRange"
+                      label="时间范围"
+                      rules={[{ required: true, message: '请选择时间范围' }]}
+                    >
+                      <DatePicker.RangePicker
+                        showTime
+                        style={{ width: '100%' }}
+                        ranges={{
+                          '最近1小时': [dayjs().subtract(1, 'hour'), dayjs()],
+                          '最近4小时': [dayjs().subtract(4, 'hour'), dayjs()],
+                          '最近12小时': [dayjs().subtract(12, 'hour'), dayjs()],
+                          '最近1天': [dayjs().subtract(1, 'day'), dayjs()],
+                          '最近3天': [dayjs().subtract(3, 'day'), dayjs()],
+                          '最近7天': [dayjs().subtract(7, 'day'), dayjs()],
+                          '最近1月': [dayjs().subtract(1, 'month'), dayjs()],
+                          '最近3月': [dayjs().subtract(3, 'month'), dayjs()],
+                          '最近6月': [dayjs().subtract(6, 'month'), dayjs()],
+                          '最近1年': [dayjs().subtract(1, 'year'), dayjs()],
+                        }}
+                      />
+                    </Form.Item>
+                  </Form>
+                </Modal>
               </>
             ),
           },
